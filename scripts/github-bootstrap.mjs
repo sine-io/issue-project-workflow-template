@@ -176,13 +176,17 @@ function ensureSubIssues(issues, refs, repository) {
 function ensureProject(config, repository) {
   console.log(`Creating or updating Project: ${config.project.title}`);
   const owner = config.project.owner;
-  const list = runJson(["project", "list", "--owner", owner, "--limit", "100", "--format", "json"]);
+  const listResult = runGh(["project", "list", "--owner", owner, "--limit", "100", "--format", "json"], { allowFailure: true });
+  if (typeof listResult !== "string") {
+    throw new Error("The active token cannot read organization Projects. Grant Projects: Read and write before rerunning; a previous create attempt may already have created the Project.");
+  }
+  const list = JSON.parse(listResult);
   let project = (list.projects || []).find((item) => item.title === config.project.title);
   if (!project) {
     const result = runGh(["project", "create", "--owner", owner, "--title", config.project.title, "--format", "json"], { allowFailure: true });
     if (typeof result !== "string") {
       if (/personal access token|permission|accessible/i.test(result.stderr)) {
-        throw new Error("GitHub Project creation requires Projects: Read and write on the Project owner. Configure PROJECT_TOKEN, then rerun; existing Issues will be reused.");
+        throw new Error("GitHub may have created the Project but denied access to the response. Grant Projects: Read and write, verify the Project list, then rerun; existing Issues and a matching Project title will be reused.");
       }
       throw new Error(result.stderr);
     }

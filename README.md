@@ -46,6 +46,8 @@ npm run bootstrap         # 同时创建和配置 GitHub Project
 
 不要把 token 写进 manifest、workflow 或提交历史。Actions secret 不会随模板复制，每个新仓库需要单独配置，或在组织级配置共享 secret。
 
+GitHub 在 token 缺少 Projects 权限时，可能先创建 Project、再拒绝返回该 Project。遇到 `Resource not accessible by personal access token` 后不要反复创建；先补足权限并检查组织 Project 列表。bootstrap 会按 Project 标题复用已有项目。
+
 ## Manifest 结构
 
 每个 Issue 可以包含：
@@ -91,4 +93,3 @@ node scripts/github-bootstrap.mjs \
 
 - [Creating a repository from a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
 - [REST API endpoints for sub-issues](https://docs.github.com/en/rest/issues/sub-issues)
-

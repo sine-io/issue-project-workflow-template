@@ -20,3 +20,5 @@ Classic PAT scopes:
 - `repo` when the target repository is private.
 
 Secrets are not copied when a repository is generated from this template. Configure `PROJECT_TOKEN` on every new repository, or expose one organization secret to selected repositories.
+
+GitHub can create a Project and then return `Resource not accessible by personal access token` when the token cannot read the created node. Do not repeatedly retry Project creation with the same under-scoped token. Grant the permission, inspect the organization Project list, and rerun; the bootstrap script reuses a matching title.

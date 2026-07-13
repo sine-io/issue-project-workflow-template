@@ -241,18 +241,27 @@ function ensureProjectFields(config, project) {
 }
 
 function queryProjectItems(projectId) {
-  const result = graphql(`
-    query($id: ID!) {
+  const query = `
+    query($id: ID!, $after: String) {
       node(id: $id) {
         ... on ProjectV2 {
-          items(first: 100) {
+          items(first: 100, after: $after) {
             nodes { id content { ... on Issue { id number url } } }
+            pageInfo { hasNextPage endCursor }
           }
         }
       }
     }
-  `, { id: projectId });
-  return result.data.node.items.nodes.filter((item) => item.content?.id);
+  `;
+  const items = [];
+  let after = null;
+  do {
+    const result = graphql(query, { id: projectId, after });
+    const page = result.data.node.items;
+    items.push(...page.nodes.filter((item) => item.content?.id));
+    after = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null;
+  } while (after);
+  return items;
 }
 
 function optionId(field, name) {

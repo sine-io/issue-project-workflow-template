@@ -1,0 +1,360 @@
+{
+  "$schema": "../issue-plan.schema.json",
+  "schemaVersion": "1.0",
+  "workflow": {
+    "repository": "sine-io/issue-project-workflow-template",
+    "revision": "711e1373f10668a718279562bdec32b1f831668a"
+  },
+  "plan": {
+    "id": "IWF-20260722",
+    "title": "Issue Workflow Kit 改造计划",
+    "goal": "将仓库改造为可被 Codex 等智能体远程引用、以原生 GitHub Issues 驱动交付的工具无关工作流套件。",
+    "language": "zh-CN",
+    "baseRevision": "711e1373f10668a718279562bdec32b1f831668a"
+  },
+  "approval": {
+    "status": "approved",
+    "digest": "daebf4257306de8a51a8d01077482074e1a3b23084a9aad11daa9f92b6d25e81",
+    "approvedAt": "2026-07-22T14:39:15Z",
+    "approvedBy": "kisscelia"
+  },
+  "epics": [
+    {
+      "id": "IWF-20260722-E01",
+      "title": "将仓库改造为跨智能体 Issue Workflow Kit",
+      "goal": "交付从计划审批到原生 Issue、Sub-issue、依赖和逐项 PR 执行的完整工作流。",
+      "value": "任意支持读取远程 Markdown 和操作 GitHub 的智能体都能遵循同一套可审计协议。",
+      "context": "当前仓库面向 GitHub Project bootstrap，依赖 Project 配置、PAT 和 Issue Forms，无法作为跨智能体执行协议直接复用。",
+      "expectedBehavior": "仓库以 WORKFLOW.md 为远程入口，使用带审批摘要的计划文件和幂等 Issue 同步工具，不再依赖 GitHub Project。",
+      "scope": [
+        "完成全部八个顺序任务并通过端到端验证",
+        "建立原生 Sub-issues、Issue dependencies、CI 和自动合并门禁"
+      ],
+      "allowedPaths": [
+        "WORKFLOW.md",
+        ".github/**",
+        "examples/**",
+        "scripts/**",
+        "test/**",
+        "README.md",
+        "package.json",
+        "package-lock.json",
+        ".gitignore",
+        "config/**",
+        "docs/**"
+      ],
+      "outOfScope": [
+        "复制或覆盖目标仓库的 AGENTS.md",
+        "继续维护 GitHub Project、Project PAT、Area 或 Phase"
+      ],
+      "priority": "P0",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "全部子任务关闭且各自对应一个通过 CI 的 squash PR",
+        "最终仓库只保留 Issue Workflow Kit 的公开入口和命令"
+      ],
+      "verificationSteps": [
+        "npm ci",
+        "npm test",
+        "npm run plan:validate -- --plan .github/issue-plans/IWF-20260722.json"
+      ],
+      "tasks": [
+        {
+          "id": "IWF-20260722-T01",
+          "title": "定义跨智能体规划与执行协议",
+          "goal": "新增工具无关的 WORKFLOW.md，完整定义规划模式和执行模式。",
+          "value": "不同智能体可以在不依赖 Codex 专有能力的前提下产生一致、可审计的计划和交付行为。",
+          "context": "仓库当前只有 Project bootstrap 使用说明，没有需求澄清、审批门禁、原子任务和逐 Issue 执行协议。",
+          "expectedBehavior": "智能体先检查目标仓库指令，规划时形成原子 Issue 并等待摘要审批，执行时严格按依赖和状态逐项交付。",
+          "scope": [
+            "定义仓库检查和需求澄清",
+            "定义原子化标准、审批门禁和变更再审批",
+            "定义状态迁移、一 Issue 一 PR、越界与失败停止规则"
+          ],
+          "allowedPaths": [
+            "WORKFLOW.md"
+          ],
+          "outOfScope": [
+            "实现计划校验或 GitHub API 调用",
+            "复制或修改目标仓库的 AGENTS.md"
+          ],
+          "priority": "P0",
+          "dependsOn": [],
+          "acceptanceCriteria": [
+            "规划模式可以被独立照章执行",
+            "执行模式可以被独立照章执行",
+            "协议不依赖 Codex 专有工具或概念"
+          ],
+          "verificationSteps": [
+            "人工逐节核对 WORKFLOW.md 的规划门禁、执行状态机和停止条件",
+            "rg -n \"AGENTS.md|approval|status:ready|Closes\" WORKFLOW.md"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T02",
+          "title": "建立带审批摘要的 Issue Plan 契约",
+          "goal": "提供严格 JSON Schema、有效示例和基于 Ajv 的语义校验。",
+          "value": "计划在写入 GitHub 前即可发现结构错误、引用错误和失效审批。",
+          "context": "旧 manifest 面向 Project 且字段宽松，没有内容摘要或跨任务依赖完整性检查。",
+          "expectedBehavior": "未知字段、重复 ID、空边界、无效引用、依赖环和不匹配的批准摘要全部以非零状态失败。",
+          "scope": [
+            "定义 schemaVersion、workflow、plan、approval、epics 和 tasks 契约",
+            "实现递归键排序且排除 approval 的 SHA-256",
+            "实现 ID 唯一性、父子关系、依赖存在性和环检测"
+          ],
+          "allowedPaths": [
+            ".github/issue-plan.schema.json",
+            "examples/issue-plan.example.json",
+            "scripts/plan-validation.mjs",
+            "test/plan-validation.test.mjs",
+            "package.json",
+            "package-lock.json"
+          ],
+          "outOfScope": [
+            "调用 GitHub API",
+            "渲染或同步 Issue"
+          ],
+          "priority": "P0",
+          "dependsOn": [
+            "IWF-20260722-T01"
+          ],
+          "acceptanceCriteria": [
+            "有效示例和批准计划通过校验",
+            "空验收、重复 ID、未知字段、循环依赖和摘要不匹配均失败"
+          ],
+          "verificationSteps": [
+            "node --test test/plan-validation.test.mjs",
+            "node scripts/plan-validation.mjs --plan examples/issue-plan.example.json"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T03",
+          "title": "实现计划领域逻辑与 Issue 正文渲染",
+          "goal": "实现不依赖 GitHub 的计划展平、状态推导和 Epic/Task 正文渲染。",
+          "value": "同步层可以建立在可独立测试的确定性领域函数上。",
+          "context": "旧正文渲染与 Project 字段耦合，身份依赖标题且没有受管区块。",
+          "expectedBehavior": "相同计划和 Issue 引用始终生成相同摘要、标签与受管正文，并能保留受管区块外的人工内容。",
+          "scope": [
+            "展平 Epic 和 Task 并计算反向依赖",
+            "推导 ready 或 backlog 初始状态",
+            "渲染稳定身份标记、边界、关系、验收、验证和停止条件",
+            "替换受管正文区块时保留人工内容"
+          ],
+          "allowedPaths": [
+            "scripts/plan-domain.mjs",
+            "scripts/issue-body.mjs",
+            "test/plan-domain.test.mjs",
+            "test/issue-body.test.mjs"
+          ],
+          "outOfScope": [
+            "启动 gh 或写入 GitHub",
+            "处理远端分页"
+          ],
+          "priority": "P0",
+          "dependsOn": [
+            "IWF-20260722-T02"
+          ],
+          "acceptanceCriteria": [
+            "正文包含稳定标记、边界、排除项、原生关系引用、验收、验证命令和停止条件",
+            "领域函数均有确定性单元测试"
+          ],
+          "verificationSteps": [
+            "node --test test/plan-domain.test.mjs test/issue-body.test.mjs"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T04",
+          "title": "实现标签和 Issue 的幂等同步",
+          "goal": "按隐藏稳定 ID 创建或更新标签、Issue 受管正文和受管标签。",
+          "value": "计划可以反复应用，且不会破坏人工编辑或执行中的工作状态。",
+          "context": "旧工具按标题识别并覆盖全部正文和标签，改名或人工补充会造成重复或数据丢失。",
+          "expectedBehavior": "标题改变后仍复用原 Issue；重跑只更新受管正文、类型和优先级，并保留状态、closed 状态、额外标签和人工正文。",
+          "scope": [
+            "实现可注入 GitHub adapter 接口",
+            "分页查找全部 open/closed Issues 并解析稳定标记",
+            "实现固定标签和 Issue 创建、更新的幂等差异"
+          ],
+          "allowedPaths": [
+            "scripts/github-adapter.mjs",
+            "scripts/issue-sync.mjs",
+            "test/issue-sync.test.mjs"
+          ],
+          "outOfScope": [
+            "同步 Sub-issues 或 dependencies",
+            "实现用户 CLI"
+          ],
+          "priority": "P0",
+          "dependsOn": [
+            "IWF-20260722-T03"
+          ],
+          "acceptanceCriteria": [
+            "标题改名不会重复创建",
+            "完全重跑不重置状态",
+            "人工正文、额外标签和 closed 状态得到保留",
+            "中途失败后可以安全重跑"
+          ],
+          "verificationSteps": [
+            "node --test test/issue-sync.test.mjs"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T05",
+          "title": "同步原生 Sub-issues 和 Issue dependencies",
+          "goal": "使用 GitHub GraphQL 幂等同步父子关系和 blocked by 依赖。",
+          "value": "执行顺序和 Epic 结构在 GitHub 原生界面中可见且可查询。",
+          "context": "旧实现只添加 Sub-issues，不同步删除，也没有原生 dependency 支持。",
+          "expectedBehavior": "分页读取关系并应用差异；只移除同一计划中不再声明的关系，外部关系原样保留。",
+          "scope": [
+            "分页读取 subIssues 和 blockedBy",
+            "添加、迁移和移除计划内 Sub-issue 关系",
+            "添加和移除计划内 dependency 关系",
+            "对 GraphQL errors 明确失败并支持限流重试"
+          ],
+          "allowedPaths": [
+            "scripts/github-adapter.mjs",
+            "scripts/issue-sync.mjs",
+            "test/issue-sync.test.mjs"
+          ],
+          "outOfScope": [
+            "删除 Issue 或自动关闭取消任务",
+            "修改计划外的父子或依赖关系"
+          ],
+          "priority": "P0",
+          "dependsOn": [
+            "IWF-20260722-T04"
+          ],
+          "acceptanceCriteria": [
+            "关系重复同步没有副作用",
+            "跨 Epic 依赖可同步",
+            "分页、关系调整和外部关系保护均有测试",
+            "API 或 GraphQL error 不会被静默忽略"
+          ],
+          "verificationSteps": [
+            "node --test test/issue-sync.test.mjs"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T06",
+          "title": "提供 validate、preview 和 apply 安全命令",
+          "goal": "提供固定 npm CLI，并在任何写入前完成所有安全前置检查。",
+          "value": "操作者可以先预览零写入差异，并且无法把未批准或错误仓库的计划误应用。",
+          "context": "旧 CLI 混合验证和写入，缺少批准摘要、目标仓库和 Issues 权限门禁。",
+          "expectedBehavior": "validate 离线校验；preview 只读并输出 JSON；apply 仅在仓库、认证、权限和显式摘要全部正确时写入。",
+          "scope": [
+            "实现 gh、认证、仓库、Issues 权限和 baseRevision 检查",
+            "实现固定 plan:validate、issues:preview、issues:apply 命令",
+            "输出可机器读取的预览和 Issue URL/ID 映射"
+          ],
+          "allowedPaths": [
+            "scripts/issue-workflow.mjs",
+            "scripts/github-adapter.mjs",
+            "scripts/issue-sync.mjs",
+            "test/cli.test.mjs",
+            "package.json",
+            "package-lock.json"
+          ],
+          "outOfScope": [
+            "配置仓库 ruleset",
+            "迁移 README 或删除旧入口"
+          ],
+          "priority": "P0",
+          "dependsOn": [
+            "IWF-20260722-T05"
+          ],
+          "acceptanceCriteria": [
+            "未批准、摘要过期、仓库错误或权限不足时在任何 GitHub 写入前退出",
+            "preview 保证零写入",
+            "apply 成功输出机器可读 JSON 映射"
+          ],
+          "verificationSteps": [
+            "node --test test/cli.test.mjs",
+            "npm run plan:validate -- --plan examples/issue-plan.example.json"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T07",
+          "title": "建立集成回归测试、CI 和自动合并门禁",
+          "goal": "覆盖破坏性同步场景，并要求 main 的 test 检查成功后才能通过 PR 合并。",
+          "value": "高风险的幂等与关系逻辑在发布前得到回归保护，失败 PR 无法进入 main。",
+          "context": "旧 CI 仅有手动 bootstrap workflow，main 无保护规则且仓库未启用 auto-merge。",
+          "expectedBehavior": "push/PR 执行 npm ci、完整测试和示例校验；main 禁止直推、强推和删除，并只允许通过 test 的 PR。",
+          "scope": [
+            "增加可注入 adapter 的完整集成回归测试",
+            "增加 push 和 pull_request CI",
+            "配置 main ruleset 和 squash auto-merge"
+          ],
+          "allowedPaths": [
+            ".github/workflows/test.yml",
+            "test/**",
+            "scripts/**",
+            "package.json",
+            "package-lock.json"
+          ],
+          "outOfScope": [
+            "要求人工 review",
+            "保留 merge commit 或 rebase merge"
+          ],
+          "priority": "P0",
+          "dependsOn": [
+            "IWF-20260722-T06"
+          ],
+          "acceptanceCriteria": [
+            "测试覆盖创建、重跑、改名、状态保留、分页、关系调整、失败恢复和审批失效",
+            "CI 失败的 PR 不能合并",
+            "仓库启用 squash auto-merge"
+          ],
+          "verificationSteps": [
+            "npm ci",
+            "npm test",
+            "gh api repos/sine-io/issue-project-workflow-template/rulesets"
+          ]
+        },
+        {
+          "id": "IWF-20260722-T08",
+          "title": "完成文档切换并删除旧实现",
+          "goal": "把 README 和仓库入口完整切换为 Issue Workflow Kit，并移除旧 Project bootstrap。",
+          "value": "使用者只会看到当前受支持的远程引用、计划和 Issue 工作流，不会误入废弃路径。",
+          "context": "README、workflow、配置、权限文档和 Issue Forms 仍全部指向 GitHub Project bootstrap。",
+          "expectedBehavior": "README 说明远程提示词、两种模式、权限、计划文件和状态生命周期；旧入口和实现全部删除。",
+          "scope": [
+            "重写 README 和忽略项",
+            "删除 Project 配置/API、bootstrap workflow、权限文档和整个 Issue Forms 目录",
+            "清理旧脚本、测试和 package 命令"
+          ],
+          "allowedPaths": [
+            "README.md",
+            ".gitignore",
+            "package.json",
+            "package-lock.json",
+            "config/**",
+            "scripts/github-bootstrap.mjs",
+            "scripts/bootstrap-lib.mjs",
+            "test/bootstrap-lib.test.mjs",
+            "docs/TOKEN-PERMISSIONS.md",
+            ".github/workflows/bootstrap-project.yml",
+            ".github/ISSUE_TEMPLATE/**"
+          ],
+          "outOfScope": [
+            "重命名或取消 GitHub Template 仓库属性",
+            "新增 GitHub Project 或 Issue Form 替代入口"
+          ],
+          "priority": "P1",
+          "dependsOn": [
+            "IWF-20260722-T07"
+          ],
+          "acceptanceCriteria": [
+            "README 中的固定命令均可执行",
+            "npm test 和示例校验通过",
+            "仓库不再包含 GitHub Project、PROJECT_TOKEN、project-bootstrap 或 Issue Form 运行入口"
+          ],
+          "verificationSteps": [
+            "npm test",
+            "npm run plan:validate -- --plan examples/issue-plan.example.json",
+            "test -z \"$(rg -l 'GitHub Project|PROJECT_TOKEN|project-bootstrap' --glob '!package-lock.json' . || true)\"",
+            "test ! -d .github/ISSUE_TEMPLATE"
+          ]
+        }
+      ]
+    }
+  ]
+}

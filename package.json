@@ -9,8 +9,11 @@
   "scripts": {
     "bootstrap": "node scripts/github-bootstrap.mjs --config config/project-bootstrap.json",
     "bootstrap:issues": "node scripts/github-bootstrap.mjs --config config/project-bootstrap.json --issues-only",
+    "plan:validate": "node scripts/plan-validation.mjs",
     "test": "node --test",
     "validate": "node scripts/github-bootstrap.mjs --config config/project-bootstrap.json --dry-run"
+  },
+  "dependencies": {
+    "ajv": "8.20.0"
   }
 }
-

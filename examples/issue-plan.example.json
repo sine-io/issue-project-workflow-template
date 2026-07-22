@@ -1,0 +1,55 @@
+{
+  "$schema": "../.github/issue-plan.schema.json",
+  "schemaVersion": "1.0",
+  "workflow": {
+    "repository": "example/acme-service",
+    "revision": "main"
+  },
+  "plan": {
+    "id": "DEMO-20260722",
+    "title": "Example delivery plan",
+    "goal": "Demonstrate a small valid plan.",
+    "language": "en-US",
+    "baseRevision": "711e137"
+  },
+  "approval": {
+    "status": "draft",
+    "digest": null,
+    "approvedAt": null,
+    "approvedBy": null
+  },
+  "epics": [
+    {
+      "id": "DEMO-20260722-E01",
+      "title": "Example delivery",
+      "goal": "Deliver one independently verifiable example.",
+      "value": "Consumers can copy a known-good plan shape.",
+      "context": "The example is intentionally small and has no remote side effects.",
+      "expectedBehavior": "The task can be validated before approval.",
+      "scope": ["Validate the example JSON"],
+      "allowedPaths": ["examples/issue-plan.example.json"],
+      "outOfScope": ["Changing a target repository"],
+      "priority": "P1",
+      "dependsOn": [],
+      "acceptanceCriteria": ["The example passes schema and semantic validation."],
+      "verificationSteps": ["node scripts/plan-validation.mjs --plan examples/issue-plan.example.json"],
+      "tasks": [
+        {
+          "id": "DEMO-20260722-T01",
+          "title": "Validate the example",
+          "goal": "Prove the example is structurally complete.",
+          "value": "A new plan author has a copyable starting point.",
+          "context": "The repository publishes a strict contract rather than an informal checklist.",
+          "expectedBehavior": "Validation reports success without contacting GitHub.",
+          "scope": ["Run local schema and semantic validation"],
+          "allowedPaths": ["examples/issue-plan.example.json"],
+          "outOfScope": ["Creating Issues or labels"],
+          "priority": "P1",
+          "dependsOn": [],
+          "acceptanceCriteria": ["The example is accepted by the validator."],
+          "verificationSteps": ["npm run plan:validate -- --plan examples/issue-plan.example.json"]
+        }
+      ]
+    }
+  ]
+}

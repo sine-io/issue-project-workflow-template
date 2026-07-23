@@ -1,0 +1,125 @@
+{
+  "$schema": "../issue-plan.v1.1.schema.json",
+  "schemaVersion": "1.1",
+  "workflow": {
+    "repository": "sine-io/issue-workflow-kit",
+    "revision": "129bf3b5e2dbcfefcaa0e91b13f198ea4df6711f"
+  },
+  "plan": {
+    "id": "IWF-20260723-RENAME",
+    "title": "Issue Workflow Kit 仓库标识迁移计划",
+    "goal": "在 GitHub 管理员改名完成后，将活跃文档、私有 npm 元数据和测试夹具迁移到 sine-io/issue-workflow-kit，同时保持历史批准计划字节不变。",
+    "language": "zh-CN",
+    "baseRevision": "129bf3b5e2dbcfefcaa0e91b13f198ea4df6711f"
+  },
+  "approval": {
+    "status": "approved",
+    "digest": "75302d7fb6736ad0317d86560c9504074813a9f9ef12b770b818dfb2b132471d",
+    "approvedAt": "2026-07-23T09:02:13Z",
+    "approvedBy": "kisscelia"
+  },
+  "epics": [
+    {
+      "id": "IWF-20260723-RENAME-E01",
+      "title": "完成 Issue Workflow Kit 仓库标识迁移",
+      "goal": "让所有活跃的仓库标识和使用入口指向新名称，并明确保留历史审计坐标。",
+      "value": "使用者能够从新仓库坐标获取协议、安装依赖和运行测试，同时既有批准摘要继续有效。",
+      "context": "GitHub 仓库已由 sine-io/issue-project-workflow-template 重命名为 sine-io/issue-workflow-kit；当前 README、私有 npm 根包名和一个活跃测试夹具仍使用旧名称。",
+      "expectedBehavior": "活跃引用统一使用 issue-workflow-kit；两个历史批准计划保留旧仓库坐标且其批准摘要不变；CLI、schema、命令参数和运行协议不变。",
+      "scope": [
+        "更新 README 中的远程 WORKFLOW.md 地址并说明历史批准计划的坐标保留策略",
+        "更新 package.json、package-lock.json 和活跃测试夹具中的仓库标识",
+        "验证全部测试、示例和仓库计划"
+      ],
+      "allowedPaths": [
+        "README.md",
+        "package.json",
+        "package-lock.json",
+        "test/issue-sync.test.mjs"
+      ],
+      "outOfScope": [
+        "修改 .github/issue-plans/IWF-20260722.json 或 .github/issue-plans/IWF-20260723.json",
+        "修改 schema $id、CLI、命令参数或领域逻辑",
+        "发布 npm 包或创建占用旧仓库名称的兼容仓库"
+      ],
+      "priority": "P0",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "唯一任务通过一个带关闭引用的 squash PR 完成",
+        "活跃文档、私有 npm 元数据和测试夹具只使用新仓库名称",
+        "历史批准计划保持字节不变并继续通过摘要校验",
+        "全部测试、示例和仓库计划校验通过"
+      ],
+      "verificationSteps": [
+        "npm ci",
+        "npm test",
+        "npm run plan:validate -- --plan examples/issue-plan.example.json",
+        "npm run plan:validate -- --plan examples/issue-plan.v1.1.example.json",
+        "for plan in .github/issue-plans/*.json; do npm run plan:validate -- --plan \"$plan\"; done"
+      ],
+      "tasks": [
+        {
+          "id": "IWF-20260723-RENAME-T01",
+          "title": "迁移活跃仓库标识并保留历史审计坐标",
+          "goal": "把 README、私有 npm 根包名和活跃测试夹具迁移到 issue-workflow-kit。",
+          "value": "使用者和自动化会引用当前仓库名称，而历史批准计划仍可离线验证和审计。",
+          "context": "仓库管理员改名已经完成，但受版本控制的活跃引用尚未迁移；直接修改历史计划会使其批准摘要失效。",
+          "expectedBehavior": "README 的两个 raw GitHub 地址使用新仓库名并解释历史坐标保留策略；package.json 与 lockfile 根包名为 issue-workflow-kit；活跃测试夹具使用新坐标；历史计划不变。",
+          "scope": [
+            "更新 README 中两个 raw.githubusercontent.com 地址",
+            "在 README 说明已完成的批准计划保留其原始 workflow.repository 坐标",
+            "更新 package.json 与 package-lock.json 的根包名",
+            "更新 test/issue-sync.test.mjs 中的活跃仓库坐标"
+          ],
+          "allowedPaths": [
+            "README.md",
+            "package.json",
+            "package-lock.json",
+            "test/issue-sync.test.mjs"
+          ],
+          "outOfScope": [
+            "修改任何历史批准计划或其摘要",
+            "修改已经正确使用 Issue Workflow Kit 的标题、schema $id、CLI 或领域逻辑",
+            "发布 npm 包或改变公开命令、schema 和运行协议"
+          ],
+          "priority": "P0",
+          "dependsOn": [],
+          "acceptanceCriteria": [
+            "README 中两个远程 WORKFLOW.md 地址均使用 sine-io/issue-workflow-kit",
+            "README 明确已完成的批准计划保留原始仓库坐标且不应回写",
+            "package.json 和 package-lock.json 的根 package name 均为 issue-workflow-kit",
+            "test/issue-sync.test.mjs 的活跃仓库夹具使用 sine-io/issue-workflow-kit",
+            "搜索旧名称时只在 .github/issue-plans/IWF-20260722.json 和 .github/issue-plans/IWF-20260723.json 中命中",
+            "npm test、两个示例和全部仓库计划校验通过"
+          ],
+          "verificationSteps": [
+            "npm ci",
+            "npm test",
+            "npm run plan:validate -- --plan examples/issue-plan.example.json",
+            "npm run plan:validate -- --plan examples/issue-plan.v1.1.example.json",
+            "for plan in .github/issue-plans/*.json; do npm run plan:validate -- --plan \"$plan\"; done",
+            "test \"$(node -p \"require('./package.json').name\")\" = issue-workflow-kit",
+            "test \"$(node -p \"require('./package-lock.json').name\")\" = issue-workflow-kit"
+          ],
+          "execution": {
+            "agent": "codex",
+            "commitPolicy": "required",
+            "allowedSideEffects": [
+              "git:branch:write",
+              "git:commit:write",
+              "git:push",
+              "github:issues:write",
+              "github:pull-requests:write"
+            ],
+            "maxRuntimeSeconds": 7200,
+            "maxAttempts": 1,
+            "heartbeatIntervalSeconds": 300,
+            "requiredChecks": [
+              "test"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
